@@ -7,9 +7,24 @@
 //  SPDX-License-Identifier: Apache-2.0
 //
 
-public struct TaskSemaphore {
-    public private(set) var text = "Hello, World!"
+public actor TaskSemaphore {
+    var serializedTasks: [CheckedContinuation<Bool, Never>] = []
 
     public init() {
     }
+
+    public func wait() async -> Bool {
+        await withCheckedContinuation { continuation in
+            serializedTasks.append(continuation)
+            if serializedTasks.count == 1 {
+                serializedTasks.first!.resume(returning: true)
+            }
+        }
+    }
+    
+    public func signal() {
+        serializedTasks.remove(at: 0)
+        serializedTasks.first?.resume(returning: true)
+    }
+
 }

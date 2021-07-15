@@ -24,10 +24,15 @@ let package = Package(
             swiftSettings: [
                 .unsafeFlags([
                     "-Xfrontend", "-disable-availability-checking",
-                    "-Xfrontend", "-enable-experimental-concurrency"
+                    "-Xfrontend", "-enable-experimental-concurrency",
                 ])]),
         .testTarget(
             name: "TaskSemaphoreTests",
-            dependencies: ["TaskSemaphore"]),
+            dependencies: ["TaskSemaphore"],
+            swiftSettings: [
+                .unsafeFlags([
+                    "-Xfrontend", "-disable-availability-checking",
+                    "-Xfrontend", "-enable-experimental-concurrency",
+                ])]),
     ]
 )

@@ -10,13 +10,13 @@ final class TaskSemaphoreTests: XCTestCase {
                 current += 1
             }
         }
-        
+
         let progress = SequenceChecker()
         let shouldComplete = XCTestExpectation(description: "all checks should run")
 
-        
+
         let coordinator = TaskSemaphore()
-        
+
         detach {
             await Task.sleep(500_000_000)
             await progress.check(shouldBe: 6)
@@ -27,7 +27,7 @@ final class TaskSemaphoreTests: XCTestCase {
         // run in parallel but are sequenced by their first Task.sleep
         detach {
             await Task.sleep(20_000_000)
-            let _ = await coordinator.wait()
+            await coordinator.wait()
             await progress.check(shouldBe: 4)
             await Task.yield()
             await Task.sleep(10_000_000)
@@ -36,7 +36,7 @@ final class TaskSemaphoreTests: XCTestCase {
         }
         detach {
             await Task.sleep(10_000_000)
-            let _ = await coordinator.wait()
+            await coordinator.wait()
             await progress.check(shouldBe: 2)
             await Task.yield()
             await Task.sleep(50_000_000)
@@ -44,14 +44,14 @@ final class TaskSemaphoreTests: XCTestCase {
             await coordinator.signal()
         }
         detach {
-            let _ = await coordinator.wait()
+            await coordinator.wait()
             await progress.check(shouldBe: 0)
             await Task.yield()
             await Task.sleep(100_000_000)
             await progress.check(shouldBe: 1)
             await coordinator.signal()
         }
-        
+
         wait(for: [shouldComplete], timeout: 1.0)
     }
 }

@@ -11,7 +11,7 @@
 /// between calls to ``wait()`` and ``signal()``.
 public actor TaskSemaphore {
     // Swift Concurrency actors make this implementation very easy
-    var serializedTasks: [CheckedContinuation<Bool, Never>] = []
+    var serializedTasks: [CheckedContinuation<Void, Never>] = []
 
     public init() {
     }
@@ -29,16 +29,13 @@ public actor TaskSemaphore {
     ///
     /// - Note: The wait queue is a FIFO: calls to wait() return in the order they were called.
     public func wait() async {
-        let _ = await waitImpl()
-    }
-
-    // FIXME: Bool here is a throwaway dummy, because I can't get the syntax
-    // for capturing a void continuation to compile. Get this right.
-    func waitImpl() async -> Bool {
-        await withCheckedContinuation { continuation in
+        // "return await..." or "let _: Void = await..." can be used to give
+        // withCheckedContinuation enough context to infer its T parameter type
+        // as Void:
+        return await withCheckedContinuation { continuation in
             serializedTasks.append(continuation)
             if serializedTasks.count == 1 {
-                serializedTasks.first!.resume(returning: true)
+                serializedTasks.first!.resume()
             }
         }
     }
@@ -48,7 +45,7 @@ public actor TaskSemaphore {
     /// If other tasks are queued calling wait(), the first in line is scheduled.
     public func signal() {
         serializedTasks.remove(at: 0)
-        serializedTasks.first?.resume(returning: true)
+        serializedTasks.first?.resume()
     }
 
 }
